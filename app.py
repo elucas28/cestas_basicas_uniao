@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
-import pywhatkit
 import json
 from datetime import datetime
 import os
@@ -8,6 +7,7 @@ from dotenv import load_dotenv
 import re
 import time
 from whitenoise import WhiteNoise
+import urllib.parse
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -287,20 +287,16 @@ Endereço: {pedido_info['endereco']}
         if not numero.startswith('55'):
             numero = '55' + numero
 
-        # Envia mensagem via WhatsApp
-        pywhatkit.sendwhatmsg_instantly(
-            phone_no=f"+{numero}",
-            message=mensagem,
-            tab_close=True,
-            wait_time=10  # Aumenta o tempo de espera para 10 segundos
-        )
-        
-        # Pequeno delay antes de enviar a resposta de sucesso
-        time.sleep(2)
-        
-        # Emite status de sucesso
-        emit('whatsapp_status', {'success': True})
-        
+        # Gera link do WhatsApp
+        encoded_message = urllib.parse.quote(mensagem)
+        whatsapp_link = f"https://wa.me/{numero}?text={encoded_message}"
+
+        # Envia resposta com o link
+        emit('whatsapp_status', {
+            'success': True,
+            'whatsapp_link': whatsapp_link
+        })
+
     except Exception as e:
         print(f"Erro ao enviar WhatsApp: {str(e)}")
         # Emite status de erro

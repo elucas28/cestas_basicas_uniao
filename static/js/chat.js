@@ -359,22 +359,27 @@ function createWhatsAppButton() {
 }
 
 // Handler para envio de WhatsApp
-socket.on('whatsapp_status', async (data) => {
-    if (data.status === 'processing') {
-        isProcessingOrder = true;
-        const typingIndicator = showTypingIndicator();
+socket.on('whatsapp_status', function(response) {
+    if (response.success) {
+        // Remover indicador de digitação
+        removeTypingIndicator();
         
-        // Aguarda 3 segundos para simular o processamento
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Adicionar mensagem de sucesso
+        addMessageWithDelay("Pedido processado com sucesso! Redirecionando para o WhatsApp...", "bot");
         
-        removeTypingIndicator(typingIndicator);
+        // Abrir WhatsApp em uma nova aba
+        setTimeout(() => {
+            window.open(response.whatsapp_link, '_blank');
+            enableSendButton();
+        }, 1000);
     } else {
-        isProcessingOrder = false;
-        if (data.success) {
-            addMessageWithDelay('Pedido enviado com sucesso! Em breve entraremos em contato via WhatsApp.', true);
-        } else {
-            addMessageWithDelay('Desculpe, houve um erro ao enviar o pedido. Por favor, tente novamente.', true);
-        }
+        // Remover indicador de digitação
+        removeTypingIndicator();
+        
+        // Mostrar mensagem de erro
+        addMessageWithDelay("Desculpe, ocorreu um erro ao processar seu pedido. Por favor, tente novamente.", "bot");
+        console.error("Erro:", response.error);
+        enableSendButton();
     }
 });
 
