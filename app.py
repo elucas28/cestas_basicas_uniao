@@ -303,8 +303,10 @@ Endereço: {pedido_info['endereco']}
         emit('whatsapp_status', {'success': False})
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
+    # Porta padrão do Render é 10000
+    port = int(os.getenv('PORT', 10000))
     socketio.run(app, 
                 host='0.0.0.0',
                 port=port,
-                debug=app.config['DEBUG'])
+                debug=app.config['DEBUG'],
+                allow_unsafe_werkzeug=True)  # Necessário para o Render
