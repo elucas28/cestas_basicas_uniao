@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit
 import json
 from datetime import datetime
@@ -17,7 +17,18 @@ app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
 app.config['DEBUG'] = os.getenv('FLASK_ENV') == 'development'
 
 # Configurar WhiteNoise para servir arquivos estáticos
-app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/', prefix='static/')
+app.wsgi_app = WhiteNoise(
+    app.wsgi_app,
+    root=os.path.join(os.path.dirname(__file__), 'static/'),
+    prefix='static/',
+    autorefresh=True,
+    max_age=31536000
+)
+
+# Rota para servir arquivos estáticos diretamente
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('static', filename)
 
 # Configurar SocketIO com modo de threading para produção
 socketio = SocketIO(app, 
